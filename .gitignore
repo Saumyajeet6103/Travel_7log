@@ -26,6 +26,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
 
 # vercel
@@ -34,3 +35,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code internals
+.claude/
+tasks/
+
+# data / office files (don't commit spreadsheets, PDFs, etc.)
+*.xlsx
+*.xls
+*.csv
+*.pdf
