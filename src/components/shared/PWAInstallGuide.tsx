@@ -21,7 +21,12 @@ export default function PWAInstallGuide({ onClose }: { onClose: () => void }) {
       || (navigator as unknown as { standalone?: boolean }).standalone === true
     setIsInstalled(isStandalone)
 
-    // Listen for install prompt
+    // Pick up the globally captured install prompt (from ServiceWorkerRegister)
+    if (window.__pwaInstallPrompt) {
+      setDeferredPrompt(window.__pwaInstallPrompt as BeforeInstallPromptEvent)
+    }
+
+    // Also listen in case it fires while modal is open
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
@@ -40,6 +45,7 @@ export default function PWAInstallGuide({ onClose }: { onClose: () => void }) {
       toast.success('🎉 App installed!')
     }
     setDeferredPrompt(null)
+    window.__pwaInstallPrompt = null
   }
 
   const handleNotificationToggle = async () => {

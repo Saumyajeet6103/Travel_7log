@@ -13,7 +13,6 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space
 export const metadata: Metadata = {
   title: '7 Log — Matheran 2026 🏔️',
   description: '7 dost, 1 hill station, infinite chaos. Private trip tracker for the gang.',
-  manifest: '/manifest.json',
   themeColor: '#52B788',
   appleWebApp: {
     capable: true,
@@ -30,6 +29,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-base text-foreground min-h-screen`}>
         <ThemeProvider>
           <AuthProvider>

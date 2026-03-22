@@ -1,4 +1,4 @@
-const CACHE_NAME = '7log-v1'
+const CACHE_NAME = '7log-v2'
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
