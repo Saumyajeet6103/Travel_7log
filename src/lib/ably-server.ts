@@ -14,7 +14,7 @@ function getClient(): Ably.Rest {
 
 const CHANNEL = '7log'
 
-export type RealtimeEvent = 'expense' | 'spot' | 'packing' | 'settlement'
+export type RealtimeEvent = 'expense' | 'spot' | 'packing' | 'settlement' | 'poll' | 'announcement'
 
 export async function publishEvent(event: RealtimeEvent, data?: unknown): Promise<void> {
   try {

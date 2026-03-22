@@ -9,6 +9,7 @@ import RoutesSection, { type RoutesContent } from './RoutesSection'
 import RulesSection, { type RulesContent } from './RulesSection'
 import MumbaiSection, { type MumbaiContent } from './MumbaiSection'
 import PackingList from './PackingList'
+import TrainStatusSection from './TrainStatusSection'
 
 interface TripDetailDoc {
   _id: string
@@ -25,6 +26,7 @@ interface Props {
 
 const TABS = [
   { id: 'trains',        label: 'Journey',  emoji: '🚆' },
+  { id: 'pnr',           label: 'Trains',   emoji: '🎫' },
   { id: 'stays',         label: 'Stays',    emoji: '🏨' },
   { id: 'routes',        label: 'Routes',   emoji: '🗺️' },
   { id: 'rules',         label: 'Rules',    emoji: '📜' },
@@ -73,13 +75,13 @@ export default function TripDetailsDashboard({ details }: Props) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-heading font-bold text-2xl text-[#E8F5E9]">🗺️ Trip Guide</h1>
-        <p className="text-sm text-[#A0AEC0] mt-1">Everything you need for Matheran 2026</p>
+        <h1 className="font-heading font-bold text-2xl text-foreground">🗺️ Trip Guide</h1>
+        <p className="text-sm text-muted mt-1">Everything you need for Matheran 2026</p>
       </div>
 
       {/* Saving indicator */}
       {saving && (
-        <div className="flex items-center gap-2 text-xs text-[#A0AEC0] bg-[#0F3460]/40 rounded-lg px-3 py-2 w-fit">
+        <div className="flex items-center gap-2 text-xs text-muted bg-subtle/40 rounded-lg px-3 py-2 w-fit">
           <div className="w-3 h-3 border-2 border-[#52B788] border-t-transparent rounded-full animate-spin" />
           Saving changes…
         </div>
@@ -93,8 +95,8 @@ export default function TripDetailsDashboard({ details }: Props) {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === tab.id
-                ? 'bg-[#52B788] text-[#1A1A2E] font-bold'
-                : 'bg-[#16213E] border border-[#0F3460] text-[#A0AEC0] hover:text-[#E8F5E9] hover:border-[#52B788]/40'
+                ? 'bg-primary text-primary-fg font-bold'
+                : 'bg-surface border border-subtle text-muted hover:text-foreground hover:border-primary/40'
             }`}
           >
             <span>{tab.emoji}</span>
@@ -140,6 +142,10 @@ export default function TripDetailsDashboard({ details }: Props) {
 
         {activeTab === 'mumbai_explore' && mumbai && (
           <MumbaiSection content={mumbai.content as unknown as MumbaiContent} />
+        )}
+
+        {activeTab === 'pnr' && (
+          <TrainStatusSection />
         )}
 
         {activeTab === 'packing' && (

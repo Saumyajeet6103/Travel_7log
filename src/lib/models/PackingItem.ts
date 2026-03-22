@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 
 export interface IPackingItem extends Document {
   label: string
-  category: 'essentials' | 'clothes' | 'gadgets' | 'misc'
+  category: 'clothes' | 'toiletries' | 'docs' | 'meds' | 'tech' | 'food' | 'misc'
   checkedBy: string[]     // Array of member names who checked it
   isGlobal: boolean       // true = everyone needs it | false = personal item
   addedBy: string         // Member name or "admin"
@@ -14,9 +14,9 @@ export interface IPackingItem extends Document {
 const PackingItemSchema = new Schema<IPackingItem>(
   {
     label:     { type: String, required: true, trim: true },
-    category:  { type: String, enum: ['essentials', 'clothes', 'gadgets', 'misc'], default: 'misc' },
+    category:  { type: String, enum: ['clothes', 'toiletries', 'docs', 'meds', 'tech', 'food', 'misc'], default: 'misc' },
     checkedBy: { type: [String], default: [] },
-    isGlobal:  { type: Boolean, default: true },
+    isGlobal:  { type: Boolean, default: false },
     addedBy:   { type: String, required: true },
     order:     { type: Number, default: 0 },
   },

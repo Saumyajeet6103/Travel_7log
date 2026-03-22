@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRealtime } from '@/hooks/useRealtime'
 import { PopulatedExpense, MemberBalance, SettlementTransaction, PopulatedSettlement } from '@/types/expense'
@@ -10,8 +10,57 @@ import ExpenseCard      from './ExpenseCard'
 import AddExpenseModal  from './AddExpenseModal'
 import BalancesView     from './BalancesView'
 import SettleModal      from './SettleModal'
-import { Plus, TrendingUp, TrendingDown, Wallet, History } from 'lucide-react'
+import PersonalExpenses from './PersonalExpenses'
+import MyBalanceView    from './MyBalanceView'
+import ViewExpenseModal from './ViewExpenseModal'
+import { Plus, TrendingUp, TrendingDown, Wallet, History, RefreshCw, User, UserCheck, Trash2, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+interface DeleteLogSplit {
+  memberName: string
+  memberEmoji: string
+  amount: number
+}
+
+interface DeleteLogEdit {
+  editedBy: string
+  editedAt: string
+  changes: string
+}
+
+interface DeleteLogEntry {
+  _id: string
+  expenseTitle: string
+  expenseAmount: number
+  category: string
+  paidByName: string
+  paidByEmoji: string
+  expenseDate: string
+  expenseNote: string
+  splitType: string
+  splits: DeleteLogSplit[]
+  editHistory: DeleteLogEdit[]
+  deletedBy: string
+  deletedAt: string
+  splitCount: number
+}
+
+// View modal data shape
+interface ViewData {
+  title: string
+  amount: number
+  category: string
+  paidByName: string
+  paidByEmoji: string
+  date: string
+  note: string
+  splitType: string
+  splits: DeleteLogSplit[]
+  editHistory: DeleteLogEdit[]
+  isDeleted?: boolean
+  deletedBy?: string
+  deletedAt?: string
+}
 
 interface BalancesData {
   memberBalances: MemberBalance[]
@@ -26,7 +75,7 @@ interface Props {
   initialSettlements: PopulatedSettlement[]
 }
 
-type Tab = 'expenses' | 'balances' | 'history'
+type Tab = 'expenses' | 'my' | 'balances' | 'personal' | 'history'
 
 export default function ExpenseDashboard({
   initialExpenses, initialMembers, initialBalances, initialSettlements,
@@ -39,6 +88,9 @@ export default function ExpenseDashboard({
   const [showAdd,     setShowAdd]     = useState(false)
   const [editing,     setEditing]     = useState<PopulatedExpense | null>(null)
   const [settleTarget, setSettleTarget] = useState<SettlementTransaction | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [deleteLogs, setDeleteLogs] = useState<DeleteLogEntry[]>([])
+  const [viewData, setViewData]     = useState<ViewData | null>(null)
 
   // Find current member ID from members list
   const currentMember = initialMembers.find(
@@ -47,17 +99,75 @@ export default function ExpenseDashboard({
   const currentMemberId = currentMember?._id ?? ''
 
   const refreshData = useCallback(async () => {
-    const [expRes, balRes, setRes] = await Promise.all([
+    const [expRes, balRes, setRes, delRes] = await Promise.all([
       fetch('/api/expenses'),
       fetch('/api/balances'),
       fetch('/api/settlements'),
+      fetch('/api/delete-logs'),
     ])
     if (expRes.ok) { const d = await expRes.json(); setExpenses(d.expenses) }
     if (balRes.ok) { const d = await balRes.json(); setBalances(d) }
     if (setRes.ok) { const d = await setRes.json(); setSettlements(d.settlements) }
+    if (delRes.ok) { const d = await delRes.json(); setDeleteLogs(d.logs) }
   }, [])
 
   useRealtime(['expense', 'settlement'], refreshData)
+
+  // Fetch delete logs on mount
+  useEffect(() => {
+    fetch('/api/delete-logs')
+      .then((r) => r.json())
+      .then((d) => setDeleteLogs(d.logs ?? []))
+      .catch(() => {})
+  }, [])
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true)
+    await refreshData()
+    setRefreshing(false)
+    toast.success('Refreshed! 🔄', { duration: 1500 })
+  }
+
+  const handleViewExpense = (expense: PopulatedExpense) => {
+    setViewData({
+      title:       expense.title,
+      amount:      expense.amount,
+      category:    expense.category,
+      paidByName:  expense.paidBy.name,
+      paidByEmoji: expense.paidBy.emoji,
+      date:        expense.date,
+      note:        expense.note,
+      splitType:   expense.splitType,
+      splits:      expense.splits.map((s) => ({
+        memberName:  s.member.name,
+        memberEmoji: s.member.emoji,
+        amount:      s.amount,
+      })),
+      editHistory: expense.editHistory.map((e) => ({
+        editedBy: e.editedBy,
+        editedAt: e.editedAt,
+        changes:  e.changes,
+      })),
+    })
+  }
+
+  const handleViewDeleted = (log: DeleteLogEntry) => {
+    setViewData({
+      title:       log.expenseTitle,
+      amount:      log.expenseAmount,
+      category:    log.category,
+      paidByName:  log.paidByName,
+      paidByEmoji: log.paidByEmoji,
+      date:        log.expenseDate,
+      note:        log.expenseNote,
+      splitType:   log.splitType,
+      splits:      log.splits ?? [],
+      editHistory: log.editHistory ?? [],
+      isDeleted:   true,
+      deletedBy:   log.deletedBy,
+      deletedAt:   log.deletedAt,
+    })
+  }
 
   const handleSaved = (expense: PopulatedExpense) => {
     setExpenses((prev) => {
@@ -88,8 +198,10 @@ export default function ExpenseDashboard({
   const iGetBack    = myBalance && myBalance.netBalance > 0 ? myBalance.netBalance : 0
 
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'expenses', label: 'Expenses',  icon: <Wallet size={14} /> },
+    { id: 'expenses', label: 'Group',     icon: <Wallet size={14} /> },
+    { id: 'my',       label: 'Mine',      icon: <UserCheck size={14} /> },
     { id: 'balances', label: 'Balances',  icon: <TrendingUp size={14} /> },
+    { id: 'personal', label: 'Personal',  icon: <User size={14} /> },
     { id: 'history',  label: 'History',   icon: <History size={14} /> },
   ]
 
@@ -98,49 +210,56 @@ export default function ExpenseDashboard({
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-heading font-black text-2xl text-[#E8F5E9]">Expense Tracker 💸</h1>
-          <p className="text-xs text-[#A0AEC0] mt-0.5">7 log ka hisaab kitaab</p>
+          <h1 className="font-heading font-black text-2xl text-foreground">Expense Tracker 💸</h1>
+          <p className="text-xs text-muted mt-0.5">7 log ka hisaab kitaab</p>
         </div>
-        <button
-          onClick={() => { setEditing(null); setShowAdd(true) }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#52B788] hover:bg-[#2D6A4F] text-[#1A1A2E] font-heading font-bold rounded-xl text-sm transition-all"
-        >
-          <Plus size={16} /> Add
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="p-2.5 rounded-xl border border-subtle text-muted hover:text-primary hover:border-primary/40 transition-all disabled:opacity-50"
+            aria-label="Refresh expenses"
+          >
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+          </button>
+          <button
+            onClick={() => { setEditing(null); setShowAdd(true) }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-primary-fg font-heading font-bold rounded-xl text-sm transition-all"
+          >
+            <Plus size={16} /> Add
+          </button>
+        </div>
       </div>
 
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-[#16213E] border border-[#0F3460] rounded-xl p-3 text-center">
-          <p className="text-xs text-[#A0AEC0] mb-1">Total Spent</p>
-          <p className="font-heading font-bold text-sm text-[#E8F5E9]">{formatCurrency(totalSpent)}</p>
+        <div className="bg-surface border border-subtle rounded-xl p-3 text-center card-hover">
+          <Wallet size={14} className="mx-auto mb-1.5 text-foreground/60" />
+          <p className="font-heading font-bold text-sm text-foreground">{formatCurrency(totalSpent)}</p>
+          <p className="text-[10px] text-muted mt-0.5">Total Spent</p>
         </div>
-        <div className="bg-[#E63946]/10 border border-[#E63946]/30 rounded-xl p-3 text-center">
-          <p className="text-xs text-[#E63946] mb-0.5 flex items-center justify-center gap-1">
-            <TrendingDown size={10} /> Tare Apvanu
-          </p>
-          <p className="text-[9px] text-[#E63946]/70 mb-1">(You owe)</p>
-          <p className="font-heading font-bold text-sm text-[#E63946]">{formatCurrency(iOwe)}</p>
+        <div className="bg-danger/10 border border-danger/30 rounded-xl p-3 text-center card-hover">
+          <TrendingDown size={14} className="mx-auto mb-1.5 text-danger" />
+          <p className="font-heading font-bold text-sm text-danger">{formatCurrency(iOwe)}</p>
+          <p className="text-[10px] text-danger/70 mt-0.5">You Owe</p>
         </div>
-        <div className="bg-[#52B788]/10 border border-[#52B788]/30 rounded-xl p-3 text-center">
-          <p className="text-xs text-[#52B788] mb-0.5 flex items-center justify-center gap-1">
-            <TrendingUp size={10} /> Mare Levanu
-          </p>
-          <p className="text-[9px] text-[#52B788]/70 mb-1">(Get back)</p>
-          <p className="font-heading font-bold text-sm text-[#52B788]">{formatCurrency(iGetBack)}</p>
+        <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 text-center card-hover">
+          <TrendingUp size={14} className="mx-auto mb-1.5 text-primary" />
+          <p className="font-heading font-bold text-sm text-primary">{formatCurrency(iGetBack)}</p>
+          <p className="text-[10px] text-primary/70 mt-0.5">Get Back</p>
         </div>
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex gap-1 bg-[#16213E] border border-[#0F3460] rounded-xl p-1 mb-5">
+      <div className="flex gap-1 bg-surface border border-subtle rounded-xl p-1 mb-5">
         {TABS.map(({ id, label, icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
               activeTab === id
-                ? 'bg-[#52B788] text-[#1A1A2E]'
-                : 'text-[#A0AEC0] hover:text-[#E8F5E9]'
+                ? 'bg-primary text-primary-fg shadow-sm'
+                : 'text-muted hover:text-foreground hover:bg-subtle/50'
             }`}
           >
             {icon} {label}
@@ -156,13 +275,13 @@ export default function ExpenseDashboard({
           {expenses.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-4xl mb-2">🫙</p>
-              <p className="font-heading font-bold text-[#52B788]">Abhi tak kuch nahi!</p>
-              <p className="text-xs text-[#A0AEC0] mt-1">
+              <p className="font-heading font-bold text-primary">Abhi tak kuch nahi!</p>
+              <p className="text-xs text-muted mt-1">
                 No expenses yet. Bhai trip pe gaye ho ya ghar pe baithe ho? 😂
               </p>
               <button
                 onClick={() => setShowAdd(true)}
-                className="mt-4 px-4 py-2 bg-[#52B788]/20 text-[#52B788] border border-[#52B788]/30 rounded-xl text-sm font-medium"
+                className="mt-4 px-4 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-sm font-medium"
               >
                 Add first expense +
               </button>
@@ -175,9 +294,29 @@ export default function ExpenseDashboard({
                 currentMemberId={currentMemberId}
                 onEdit={(e) => { setEditing(e); setShowAdd(true) }}
                 onDelete={handleDelete}
+                onView={handleViewExpense}
               />
             ))
           )}
+        </div>
+      )}
+
+      {/* My Balance — debts & credits only for current user */}
+      {activeTab === 'my' && (
+        <div className="animate-fade-in">
+          <MyBalanceView
+            memberBalances={balances.memberBalances}
+            transactions={balances.transactions}
+            currentMemberId={currentMemberId}
+            onSettleUp={(t) => setSettleTarget(t)}
+          />
+        </div>
+      )}
+
+      {/* Personal */}
+      {activeTab === 'personal' && (
+        <div className="animate-fade-in">
+          <PersonalExpenses />
         </div>
       )}
 
@@ -200,27 +339,69 @@ export default function ExpenseDashboard({
           {settlements.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-4xl mb-2">📜</p>
-              <p className="font-heading font-bold text-[#52B788]">Koi settlement nahi abhi</p>
-              <p className="text-xs text-[#A0AEC0] mt-1">Settlement history will appear here.</p>
+              <p className="font-heading font-bold text-primary">Koi settlement nahi abhi</p>
+              <p className="text-xs text-muted mt-1">Settlement history will appear here.</p>
             </div>
           ) : (
             settlements.map((s) => (
-              <div key={s._id} className="bg-[#16213E] border border-[#0F3460] rounded-xl p-4">
+              <div key={s._id} className="bg-surface border border-subtle rounded-xl p-4 card-hover">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{s.from.emoji}</span>
                     <div>
-                      <p className="text-sm font-medium text-[#E8F5E9]">
+                      <p className="text-sm font-medium text-foreground">
                         {s.from.name} → {s.to.emoji} {s.to.name}
                       </p>
-                      <p className="text-xs text-[#A0AEC0]">{formatDate(s.settledAt)}</p>
-                      {s.note && <p className="text-xs text-[#A0AEC0]/60 italic mt-0.5">&ldquo;{s.note}&rdquo;</p>}
+                      <p className="text-xs text-muted">{formatDate(s.settledAt)}</p>
+                      {s.note && <p className="text-xs text-muted/60 italic mt-0.5">&ldquo;{s.note}&rdquo;</p>}
                     </div>
                   </div>
-                  <p className="font-heading font-bold text-[#52B788]">{formatCurrency(s.amount)}</p>
+                  <p className="font-heading font-bold text-primary">{formatCurrency(s.amount)}</p>
                 </div>
               </div>
             ))
+          )}
+
+          {/* Deleted expense logs */}
+          {deleteLogs.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Trash2 size={13} className="text-danger/60" />
+                <h3 className="text-xs font-medium text-muted uppercase tracking-wider">Deleted Expenses</h3>
+                <div className="flex-1 h-px bg-subtle" />
+              </div>
+              <div className="space-y-2">
+                {deleteLogs.map((log) => (
+                  <div
+                    key={log._id}
+                    className="bg-danger/[0.04] border border-danger/15 rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <span className="text-lg opacity-50">{log.paidByEmoji || '💼'}</span>
+                      <div className="min-w-0">
+                        <p className="text-sm text-foreground/70 line-through truncate">{log.expenseTitle}</p>
+                        <p className="text-[10px] text-muted">
+                          {log.paidByName} paid · {log.splitCount} split · deleted by <span className="text-danger/80 font-medium">{log.deletedBy}</span>
+                        </p>
+                        <p className="text-[10px] text-muted/60">{formatDate(log.deletedAt)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleViewDeleted(log)}
+                        className="p-1.5 rounded-lg bg-subtle hover:bg-info/20 hover:text-info text-muted transition-colors"
+                        title="View details"
+                      >
+                        <Eye size={12} />
+                      </button>
+                      <p className="font-heading font-bold text-sm text-danger/50 line-through">
+                        {formatCurrency(log.expenseAmount)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -240,6 +421,13 @@ export default function ExpenseDashboard({
           transaction={settleTarget}
           onClose={() => setSettleTarget(null)}
           onSettled={refreshData}
+        />
+      )}
+
+      {viewData && (
+        <ViewExpenseModal
+          data={viewData}
+          onClose={() => setViewData(null)}
         />
       )}
     </div>

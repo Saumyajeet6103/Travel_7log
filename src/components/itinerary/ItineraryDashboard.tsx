@@ -133,41 +133,41 @@ export default function ItineraryDashboard({ initialSpots }: Props) {
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="font-heading font-black text-2xl text-[#E8F5E9]">Itinerary 🗺️</h1>
-          <p className="text-xs text-[#A0AEC0] mt-0.5">Matheran + Mumbai ka plan</p>
+          <h1 className="font-heading font-black text-2xl text-foreground">Itinerary 🗺️</h1>
+          <p className="text-xs text-muted mt-0.5">Matheran + Mumbai ka plan</p>
         </div>
         <button
           onClick={() => { setEditing(null); setShowAdd(true) }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#52B788] hover:bg-[#2D6A4F] text-[#1A1A2E] font-heading font-bold rounded-xl text-sm transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-primary-fg font-heading font-bold rounded-xl text-sm transition-all"
         >
           <Plus size={16} /> Add Spot
         </button>
       </div>
 
       {/* ── Progress ── */}
-      <div className="bg-[#16213E] border border-[#0F3460] rounded-xl p-4 mb-5">
+      <div className="bg-surface border border-subtle rounded-xl p-4 mb-5">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Trophy size={16} className="text-[#F4A261]" />
-            <span className="text-sm font-medium text-[#E8F5E9]">
+            <Trophy size={16} className="text-warning" />
+            <span className="text-sm font-medium text-foreground">
               {doneSpots}/{totalSpots} spots conquered
             </span>
           </div>
-          <span className="font-heading font-bold text-[#52B788] text-sm">{pct}%</span>
+          <span className="font-heading font-bold text-primary text-sm">{pct}%</span>
         </div>
-        <div className="h-2.5 bg-[#0F3460] rounded-full overflow-hidden">
+        <div className="h-2.5 bg-subtle rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#52B788] to-[#2D9CDB] rounded-full transition-all duration-700"
+            className="h-full bg-gradient-to-r from-primary to-info rounded-full transition-all duration-700"
             style={{ width: `${pct}%` }}
           />
         </div>
         {pct === 100 && (
-          <p className="text-center text-xs text-[#52B788] mt-2 font-medium animate-bounce-in">
+          <p className="text-center text-xs text-primary mt-2 font-medium animate-bounce-in">
             🎉 Saare spots done! Legends!
           </p>
         )}
         {pct >= 50 && pct < 100 && (
-          <p className="text-center text-xs text-[#A0AEC0] mt-2 italic">
+          <p className="text-center text-xs text-muted mt-2 italic">
             Halfway through. Thoda aur baaki hai bhai!
           </p>
         )}
@@ -186,16 +186,16 @@ export default function ItineraryDashboard({ initialSpots }: Props) {
               onClick={() => setDayFilter(isActive ? 'All' : day as DayFilter)}
               className={`rounded-xl p-3 text-center border transition-all ${
                 isActive
-                  ? 'bg-[#2D9CDB]/20 border-[#2D9CDB]/60'
-                  : 'bg-[#16213E] border-[#0F3460] hover:border-[#2D9CDB]/30'
+                  ? 'bg-info/20 border-info/60'
+                  : 'bg-surface border-subtle hover:border-info/30'
               }`}
             >
               <p className="text-lg">{meta.emoji}</p>
-              <p className={`text-[10px] font-medium mt-0.5 ${isActive ? 'text-[#2D9CDB]' : 'text-[#A0AEC0]'}`}>
+              <p className={`text-[10px] font-medium mt-0.5 ${isActive ? 'text-info' : 'text-muted'}`}>
                 {day}
               </p>
-              <p className="text-[10px] text-[#A0AEC0]">{meta.date}</p>
-              <p className={`text-xs font-heading font-bold mt-1 ${dayPct === 100 ? 'text-[#52B788]' : 'text-[#E8F5E9]'}`}>
+              <p className="text-[10px] text-muted">{meta.date}</p>
+              <p className={`text-xs font-heading font-bold mt-1 ${dayPct === 100 ? 'text-primary' : 'text-foreground'}`}>
                 {dayDone}/{daySpots.length}
               </p>
             </button>
@@ -211,8 +211,8 @@ export default function ItineraryDashboard({ initialSpots }: Props) {
             onClick={() => setStatusFilter(value)}
             className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
               statusFilter === value
-                ? 'bg-[#52B788]/20 border-[#52B788]/50 text-[#52B788]'
-                : 'bg-[#16213E] border-[#0F3460] text-[#A0AEC0] hover:border-[#52B788]/30'
+                ? 'bg-primary/20 border-primary/50 text-primary'
+                : 'bg-surface border-subtle text-muted hover:border-primary/30'
             }`}
           >
             {label}
@@ -224,8 +224,8 @@ export default function ItineraryDashboard({ initialSpots }: Props) {
       {Object.keys(grouped).length === 0 ? (
         <div className="text-center py-16">
           <p className="text-4xl mb-2">🔍</p>
-          <p className="font-heading font-bold text-[#52B788]">Kuch nahi mila</p>
-          <p className="text-xs text-[#A0AEC0] mt-1">Try a different filter</p>
+          <p className="font-heading font-bold text-primary">Kuch nahi mila</p>
+          <p className="text-xs text-muted mt-1">Try a different filter</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -241,11 +241,11 @@ export default function ItineraryDashboard({ initialSpots }: Props) {
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{meta?.emoji ?? '📍'}</span>
                       <div>
-                        <p className="font-heading font-semibold text-sm text-[#E8F5E9]">{meta?.label ?? day}</p>
-                        <p className="text-[10px] text-[#A0AEC0]">{meta?.date ?? ''} · {done}/{daySpots.length} done</p>
+                        <p className="font-heading font-semibold text-sm text-foreground">{meta?.label ?? day}</p>
+                        <p className="text-[10px] text-muted">{meta?.date ?? ''} · {done}/{daySpots.length} done</p>
                       </div>
                     </div>
-                    <div className="flex-1 h-px bg-[#0F3460]" />
+                    <div className="flex-1 h-px bg-subtle" />
                   </div>
 
                   {/* Spots */}

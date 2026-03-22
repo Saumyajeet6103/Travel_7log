@@ -3,7 +3,9 @@ import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/lib/auth-context'
+import { ThemeProvider } from '@/lib/theme-context'
 import KonamiEgg from '@/components/shared/KonamiEgg'
+import ServiceWorkerRegister from '@/components/shared/ServiceWorkerRegister'
 
 const inter        = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' })
@@ -27,25 +29,28 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-[#1A1A2E] text-[#E8F5E9] min-h-screen`}>
-        <AuthProvider>
-          {children}
-          <KonamiEgg />
-        </AuthProvider>
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: '#16213E',
-              color:      '#E8F5E9',
-              border:     '1px solid #0F3460',
-              borderRadius: '12px',
-              fontSize: '14px',
-            },
-            duration: 3500,
-          }}
-        />
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased bg-base text-foreground min-h-screen`}>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+            <KonamiEgg />
+            <ServiceWorkerRegister />
+          </AuthProvider>
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: 'rgb(var(--c-surface))',
+                color:      'rgb(var(--c-foreground))',
+                border:     '1px solid rgb(var(--c-subtle))',
+                borderRadius: '12px',
+                fontSize: '14px',
+              },
+              duration: 3500,
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   )

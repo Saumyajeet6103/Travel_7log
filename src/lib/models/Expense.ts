@@ -6,6 +6,12 @@ export interface ISplit {
   settled: boolean
 }
 
+export interface IEditEntry {
+  editedBy: string       // member name
+  editedAt: Date
+  changes: string        // short summary like "amount: ₹500→₹600"
+}
+
 export interface IExpense extends Document {
   title: string
   amount: number
@@ -16,6 +22,8 @@ export interface IExpense extends Document {
   date: Date
   note: string
   createdBy: mongoose.Types.ObjectId   // User who added the entry
+  lastEditedBy: string                 // member name who last edited
+  editHistory: IEditEntry[]
   createdAt: Date
   updatedAt: Date
 }
@@ -40,6 +48,15 @@ const ExpenseSchema = new Schema<IExpense>(
     date:      { type: Date, default: Date.now },
     note:      { type: String, default: '', trim: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    lastEditedBy: { type: String, default: '' },
+    editHistory: {
+      type: [{
+        editedBy:  { type: String, required: true },
+        editedAt:  { type: Date, default: Date.now },
+        changes:   { type: String, default: '' },
+      }],
+      default: [],
+    },
   },
   { timestamps: true }
 )

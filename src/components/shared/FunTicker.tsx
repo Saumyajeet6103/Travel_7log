@@ -19,12 +19,12 @@ export default function FunTicker() {
   const items = [...TICKER_ITEMS, ...TICKER_ITEMS] // duplicate for seamless loop
 
   return (
-    <div className="relative overflow-hidden bg-[#0F3460]/60 border border-[#0F3460] rounded-xl py-2.5 my-6">
+    <div className="relative overflow-hidden bg-subtle/60 border border-subtle rounded-xl py-2.5 my-6">
       <div className="flex whitespace-nowrap animate-ticker">
         {items.map((item, i) => (
-          <span key={i} className="inline-flex items-center text-xs text-[#A0AEC0] px-6 flex-shrink-0">
+          <span key={i} className="inline-flex items-center text-xs text-muted px-6 flex-shrink-0">
             {item}
-            <span className="mx-6 text-[#0F3460]">•</span>
+            <span className="mx-6 text-subtle">•</span>
           </span>
         ))}
       </div>

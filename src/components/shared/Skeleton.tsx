@@ -6,7 +6,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 
 export function CardSkeleton() {
   return (
-    <div className="bg-[#16213E] border border-[#0F3460] rounded-2xl p-5 space-y-3">
+    <div className="bg-surface border border-subtle rounded-2xl p-5 space-y-3">
       <div className="flex items-center gap-3">
         <Skeleton className="w-10 h-10 rounded-full" />
         <div className="flex-1 space-y-2">
@@ -28,7 +28,7 @@ export function ListSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-[#16213E] border border-[#0F3460] rounded-xl p-4 flex items-center gap-3">
+        <div key={i} className="bg-surface border border-subtle rounded-xl p-4 flex items-center gap-3">
           <Skeleton className="w-8 h-8 rounded-lg flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-3 w-3/4" />

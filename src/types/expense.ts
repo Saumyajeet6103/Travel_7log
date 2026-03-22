@@ -12,6 +12,12 @@ export interface PopulatedSplit {
   settled: boolean
 }
 
+export interface EditEntry {
+  editedBy: string
+  editedAt: string
+  changes: string
+}
+
 export interface PopulatedExpense {
   _id: string
   title: string
@@ -23,6 +29,8 @@ export interface PopulatedExpense {
   date: string
   note: string
   createdBy: string
+  lastEditedBy: string
+  editHistory: EditEntry[]
   createdAt: string
 }
 

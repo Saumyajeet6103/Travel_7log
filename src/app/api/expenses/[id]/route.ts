@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
-import { Expense, Member } from '@/lib/models'
+import { Expense, Member, DeleteLog } from '@/lib/models'
 import { getSession } from '@/lib/auth'
 import { publishEvent } from '@/lib/ably-server'
 
@@ -52,10 +52,29 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }))
     }
 
+    // Build edit summary
+    const changes: string[] = []
+    if (title && title !== expense.title) changes.push(`title: "${expense.title}"→"${title}"`)
+    if (amount && amount !== expense.amount) changes.push(`amount: ₹${expense.amount}→₹${amount}`)
+    if (category && category !== expense.category) changes.push(`category: ${expense.category}→${category}`)
+    if (splitType && splitType !== expense.splitType) changes.push(`split: ${expense.splitType}→${splitType}`)
+    const changeSummary = changes.length > 0 ? changes.join(', ') : 'updated'
+
+    // Get editor name from session
+    const editorName = session.name ?? session.username ?? 'Unknown'
+
     await Expense.findByIdAndUpdate(params.id, {
       title, amount, paidBy, category, splitType, splits,
       date: date ? new Date(date) : expense.date,
       note: note ?? expense.note,
+      lastEditedBy: editorName,
+      $push: {
+        editHistory: {
+          editedBy: editorName,
+          editedAt: new Date(),
+          changes: changeSummary,
+        },
+      },
     })
 
     await recomputeMemberTotals()
@@ -88,6 +107,36 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     if (session.role !== 'admin' && expense.createdBy.toString() !== session.id) {
       return NextResponse.json({ error: 'Sirf apna khud ka expense delete kar bhai 🙏' }, { status: 403 })
     }
+
+    // Get full expense with populated splits for the snapshot
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const populated: any = await Expense.findById(params.id)
+      .populate('paidBy', 'name emoji')
+      .populate('splits.member', 'name emoji')
+      .lean()
+
+    const deleterName = session.name ?? session.username ?? 'Unknown'
+
+    // Log the deletion with full snapshot
+    await DeleteLog.create({
+      expenseTitle:  expense.title,
+      expenseAmount: expense.amount,
+      category:      expense.category,
+      paidByName:    populated?.paidBy?.name ?? 'Unknown',
+      paidByEmoji:   populated?.paidBy?.emoji ?? '',
+      expenseDate:   expense.date,
+      expenseNote:   expense.note,
+      splitType:     expense.splitType,
+      splits: (populated?.splits ?? []).map((s: { member: { name?: string; emoji?: string }; amount: number }) => ({
+        memberName:  s.member?.name ?? 'Unknown',
+        memberEmoji: s.member?.emoji ?? '',
+        amount:      s.amount,
+      })),
+      editHistory: expense.editHistory ?? [],
+      deletedBy:     deleterName,
+      deletedAt:     new Date(),
+      splitCount:    expense.splits.length,
+    })
 
     await Expense.findByIdAndDelete(params.id)
     await recomputeMemberTotals()

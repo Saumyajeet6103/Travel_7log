@@ -35,8 +35,8 @@ export default function CountdownTimer() {
   if (isTrip) {
     return (
       <div className="text-center animate-bounce-in">
-        <p className="text-3xl font-heading font-bold text-[#52B788]">
-          🎉 IT&apos;S TRIP TIME BHAI! 🎉
+        <p className="text-3xl font-heading font-bold text-primary">
+          IT&apos;S TRIP TIME BHAI!
         </p>
       </div>
     )
@@ -50,19 +50,21 @@ export default function CountdownTimer() {
   ]
 
   return (
-    <div className="flex items-center gap-3 justify-center flex-wrap">
+    <div className="flex items-center gap-2 sm:gap-3 justify-center" role="timer" aria-label="Countdown to trip">
       {units.map(({ label, value }, i) => (
-        <div key={label} className="flex items-center gap-3">
+        <div key={label} className="flex items-center gap-2 sm:gap-3">
           <div className="text-center">
-            <div className="bg-[#16213E] border border-[#0F3460] rounded-xl px-4 py-3 min-w-[64px]">
-              <span className="font-heading font-bold text-3xl text-[#52B788] tabular-nums">
+            <div className="relative bg-surface border border-subtle rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 min-w-[56px] sm:min-w-[68px] overflow-hidden">
+              {/* Subtle gradient sheen */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
+              <span className="relative font-heading font-bold text-2xl sm:text-3xl text-primary tabular-nums">
                 {String(value).padStart(2, '0')}
               </span>
             </div>
-            <p className="text-[10px] text-[#A0AEC0] mt-1 uppercase tracking-wider">{label}</p>
+            <p className="text-[9px] sm:text-[10px] text-muted mt-1.5 uppercase tracking-[0.15em] font-medium">{label}</p>
           </div>
           {i < units.length - 1 && (
-            <span className="font-bold text-2xl text-[#0F3460] mb-4">:</span>
+            <span className="font-bold text-xl sm:text-2xl text-subtle mb-5 animate-pulse-glow">:</span>
           )}
         </div>
       ))}

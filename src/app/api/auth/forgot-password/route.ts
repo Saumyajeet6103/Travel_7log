@@ -67,12 +67,19 @@ export async function POST(req: NextRequest) {
       console.warn('[forgot-password] Email send failed:', emailErr)
     }
 
-    // For this private 7-person app: always return OTP so it works regardless of email setup
+    if (!emailSent) {
+      // Email failed — tell user to ask admin
+      return NextResponse.json({
+        success: true,
+        emailSent: false,
+        message: 'Email could not be sent. Ask admin to reset your password from the Admin Panel.',
+      })
+    }
+
     return NextResponse.json({
       success: true,
-      otp,          // shown directly in UI — private app, 7 friends only
-      emailSent,
-      message: emailSent ? 'OTP sent to registered email.' : 'Email send failed — OTP shown below.',
+      emailSent: true,
+      message: 'OTP sent to your registered email.',
     })
   } catch (err) {
     console.error('[POST /api/auth/forgot-password]', err)

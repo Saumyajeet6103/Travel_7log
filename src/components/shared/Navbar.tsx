@@ -3,21 +3,30 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { LogOut, Mountain, Receipt, Map, Navigation, Shield, Menu, X } from 'lucide-react'
+import { useTheme } from '@/lib/theme-context'
+import { LogOut, Mountain, Receipt, Map, Navigation, Shield, Menu, X, Calculator as CalcIcon, Sun, Moon, BarChart3, Download, UserCircle } from 'lucide-react'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
+import Calculator from './Calculator'
+import PWAInstallGuide from './PWAInstallGuide'
+import ProfileModal from './ProfileModal'
 
 const NAV_LINKS = [
   { href: '/',             label: 'Home',        icon: Mountain  },
   { href: '/expenses',     label: 'Expenses',    icon: Receipt   },
   { href: '/itinerary',    label: 'Itinerary',   icon: Map       },
   { href: '/trip-details', label: 'Trip Details',icon: Navigation},
+  { href: '/polls',        label: 'Polls',       icon: BarChart3 },
 ]
 
 export default function Navbar() {
   const pathname        = usePathname()
   const { user, isAdmin, logout } = useAuth()
-  const [menuOpen, setMenuOpen]   = useState(false)
+  const { theme, toggleTheme } = useTheme()
+  const [menuOpen,    setMenuOpen]    = useState(false)
+  const [showCalc,    setShowCalc]    = useState(false)
+  const [showInstall, setShowInstall] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
 
   if (pathname === '/login') return null
 
@@ -29,11 +38,11 @@ export default function Navbar() {
   return (
     <>
       {/* ── Desktop Navbar ── */}
-      <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center justify-between px-6 py-3 bg-[#16213E]/90 backdrop-blur-md border-b border-[#0F3460]">
+      <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center justify-between px-6 py-3 bg-surface/90 backdrop-blur-md border-b border-subtle shadow-sm">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
           <span className="text-2xl">🏔️</span>
-          <span className="font-heading font-bold text-xl text-[#52B788] group-hover:text-[#F4A261] transition-colors">
+          <span className="font-heading font-bold text-xl text-primary group-hover:text-warning transition-colors">
             7 Log
           </span>
         </Link>
@@ -48,8 +57,8 @@ export default function Navbar() {
                 href={href}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   active
-                    ? 'bg-[#52B788]/20 text-[#52B788]'
-                    : 'text-[#A0AEC0] hover:text-[#E8F5E9] hover:bg-white/5'
+                    ? 'bg-primary/20 text-primary'
+                    : 'text-muted hover:text-foreground hover:bg-white/5'
                 }`}
               >
                 <Icon size={15} />
@@ -62,8 +71,8 @@ export default function Navbar() {
               href="/admin"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 pathname === '/admin'
-                  ? 'bg-[#F4A261]/20 text-[#F4A261]'
-                  : 'text-[#F4A261]/60 hover:text-[#F4A261] hover:bg-[#F4A261]/10'
+                  ? 'bg-warning/20 text-warning'
+                  : 'text-warning/60 hover:text-warning hover:bg-warning/10'
               }`}
             >
               <Shield size={15} />
@@ -77,18 +86,46 @@ export default function Navbar() {
           {user && (
             <div className="flex items-center gap-2">
               {isAdmin && (
-                <span className="text-xs bg-[#F4A261]/20 text-[#F4A261] px-2 py-0.5 rounded-full border border-[#F4A261]/30">
+                <span className="text-xs bg-warning/20 text-warning px-2 py-0.5 rounded-full border border-warning/30">
                   Admin 🛡️
                 </span>
               )}
-              <span className="text-sm text-[#A0AEC0]">
-                Hey <span className="text-[#E8F5E9] font-medium">{user.name}</span> 👋
+              <span className="text-sm text-muted">
+                Hey <span className="text-foreground font-medium">{user.name}</span> 👋
               </span>
             </div>
           )}
           <button
+            onClick={() => setShowCalc(true)}
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10"
+            title="Calculator (÷7)"
+          >
+            <CalcIcon size={14} />
+          </button>
+          <button
+            onClick={() => setShowInstall(true)}
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-info transition-colors px-3 py-1.5 rounded-lg hover:bg-info/10"
+            title="Install App"
+          >
+            <Download size={14} />
+          </button>
+          <button
+            onClick={() => setShowProfile(true)}
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10"
+            title="My Profile"
+          >
+            <UserCircle size={14} />
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-surface border border-subtle text-muted hover:text-foreground transition-all"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-sm text-[#A0AEC0] hover:text-[#E63946] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#E63946]/10"
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-danger transition-colors px-3 py-1.5 rounded-lg hover:bg-danger/10"
           >
             <LogOut size={14} />
             Logout
@@ -97,18 +134,26 @@ export default function Navbar() {
       </nav>
 
       {/* ── Mobile Top Bar ── */}
-      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-[#16213E]/90 backdrop-blur-md border-b border-[#0F3460]">
+      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-surface/90 backdrop-blur-md border-b border-subtle">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl">🏔️</span>
-          <span className="font-heading font-bold text-lg text-[#52B788]">7 Log</span>
+          <span className="font-heading font-bold text-lg text-primary">7 Log</span>
         </Link>
         <div className="flex items-center gap-2">
           {isAdmin && (
-            <span className="text-xs bg-[#F4A261]/20 text-[#F4A261] px-2 py-0.5 rounded-full">🛡️</span>
+            <span className="text-xs bg-warning/20 text-warning px-2 py-0.5 rounded-full">🛡️</span>
           )}
           <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-surface border border-subtle text-muted hover:text-foreground transition-all"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 text-[#A0AEC0] hover:text-[#E8F5E9]"
+            className="p-2.5 text-muted hover:text-foreground rounded-xl transition-colors"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -117,10 +162,10 @@ export default function Navbar() {
 
       {/* Mobile Dropdown Menu */}
       {menuOpen && (
-        <div className="md:hidden fixed top-14 left-0 right-0 z-40 bg-[#16213E] border-b border-[#0F3460] shadow-xl animate-slide-down">
-          <div className="px-4 py-3 border-b border-[#0F3460]">
-            <p className="text-sm text-[#A0AEC0]">
-              Hey <span className="text-[#E8F5E9] font-medium">{user?.name}</span> 👋
+        <div className="md:hidden fixed top-14 left-0 right-0 z-40 bg-surface border-b border-subtle shadow-xl animate-slide-down">
+          <div className="px-4 py-3 border-b border-subtle">
+            <p className="text-sm text-muted">
+              Hey <span className="text-foreground font-medium">{user?.name}</span> 👋
             </p>
           </div>
           {NAV_LINKS.map(({ href, label, icon: Icon }) => {
@@ -130,8 +175,8 @@ export default function Navbar() {
                 key={href}
                 href={href}
                 onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium border-b border-[#0F3460]/50 transition-colors ${
-                  active ? 'text-[#52B788] bg-[#52B788]/10' : 'text-[#A0AEC0]'
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium border-b border-subtle/50 transition-colors ${
+                  active ? 'text-primary bg-primary/10' : 'text-muted'
                 }`}
               >
                 <Icon size={16} /> {label}
@@ -142,14 +187,20 @@ export default function Navbar() {
             <Link
               href="/admin"
               onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-[#F4A261] border-b border-[#0F3460]/50"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-warning border-b border-subtle/50"
             >
               <Shield size={16} /> Admin Panel
             </Link>
           )}
           <button
+            onClick={() => { setMenuOpen(false); setShowProfile(true) }}
+            className="flex items-center gap-3 px-4 py-3 text-sm text-muted w-full border-b border-subtle/50"
+          >
+            <UserCircle size={16} /> My Profile
+          </button>
+          <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 text-sm text-[#E63946] w-full"
+            className="flex items-center gap-3 px-4 py-3 text-sm text-danger w-full"
           >
             <LogOut size={16} /> Logout
           </button>
@@ -157,7 +208,7 @@ export default function Navbar() {
       )}
 
       {/* ── Mobile Bottom Nav ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 py-2 bg-[#16213E]/95 backdrop-blur-md border-t border-[#0F3460]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 py-2 bg-surface/95 backdrop-blur-md border-t border-subtle shadow-[0_-2px_10px_rgb(0_0_0/0.05)]">
         {NAV_LINKS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href
           return (
@@ -165,7 +216,7 @@ export default function Navbar() {
               key={href}
               href={href}
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
-                active ? 'text-[#52B788]' : 'text-[#A0AEC0]'
+                active ? 'text-primary' : 'text-muted'
               }`}
             >
               <Icon size={18} />
@@ -173,10 +224,26 @@ export default function Navbar() {
             </Link>
           )
         })}
+        <button
+          onClick={() => setShowCalc(true)}
+          className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-muted transition-all"
+        >
+          <CalcIcon size={18} />
+          <span className="text-[10px] font-medium">Calc</span>
+        </button>
       </nav>
 
       {/* Spacer for fixed navbar */}
       <div className="h-14" />
+
+      {/* Calculator modal */}
+      {showCalc && <Calculator onClose={() => setShowCalc(false)} />}
+
+      {/* PWA Install Guide modal */}
+      {showInstall && <PWAInstallGuide onClose={() => setShowInstall(false)} />}
+
+      {/* Profile modal */}
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
     </>
   )
 }

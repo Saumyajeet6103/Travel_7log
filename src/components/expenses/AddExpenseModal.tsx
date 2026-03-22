@@ -125,13 +125,13 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full md:max-w-lg bg-[#16213E] border border-[#0F3460] rounded-t-2xl md:rounded-2xl max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full md:max-w-lg bg-surface border border-subtle rounded-t-2xl md:rounded-2xl max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-[#16213E] border-b border-[#0F3460] px-5 py-4 flex items-center justify-between z-10">
-          <h2 className="font-heading font-bold text-lg text-[#E8F5E9]">
+        <div className="sticky top-0 bg-surface border-b border-subtle px-5 py-4 flex items-center justify-between z-10">
+          <h2 className="font-heading font-bold text-lg text-foreground">
             {editing ? '✏️ Edit Expense' : '💸 Add Expense'}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#0F3460] text-[#A0AEC0]">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-subtle text-muted">
             <X size={18} />
           </button>
         </div>
@@ -139,42 +139,42 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
         <form onSubmit={handleSubmit} className="p-5 space-y-5">
           {/* Title */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">What was it for?</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">What was it for?</label>
             <input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="e.g. Lunch at Matheran dhaba"
-              className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] placeholder-[#A0AEC0]/40 focus:outline-none focus:border-[#52B788] text-sm"
+              className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground placeholder-muted/40 focus:outline-none focus:border-primary text-sm"
             />
           </div>
 
           {/* Amount + Date */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Amount (₹)</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Amount (₹)</label>
               <input
                 type="number"
                 min="1"
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
                 placeholder="0"
-                className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] placeholder-[#A0AEC0]/40 focus:outline-none focus:border-[#52B788] text-sm"
+                className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground placeholder-muted/40 focus:outline-none focus:border-primary text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Date</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Date</label>
               <input
                 type="date"
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] focus:outline-none focus:border-[#52B788] text-sm"
+                className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground focus:outline-none focus:border-primary text-sm"
               />
             </div>
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Category</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Category</label>
             <div className="flex gap-2 flex-wrap">
               {EXPENSE_CATEGORIES.map((cat) => (
                 <button
@@ -183,8 +183,8 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
                   onClick={() => setForm({ ...form, category: cat.value as Category })}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
                     form.category === cat.value
-                      ? 'bg-[#52B788]/20 border-[#52B788]/60 text-[#52B788]'
-                      : 'bg-[#1A1A2E] border-[#0F3460] text-[#A0AEC0] hover:border-[#52B788]/30'
+                      ? 'bg-primary/20 border-primary/60 text-primary'
+                      : 'bg-base border-subtle text-muted hover:border-primary/30'
                   }`}
                 >
                   {cat.emoji} {cat.label}
@@ -195,7 +195,7 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
 
           {/* Paid By */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Paid by</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Paid by</label>
             <div className="flex gap-2 flex-wrap">
               {members.map((m) => (
                 <button
@@ -204,8 +204,8 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
                   onClick={() => setForm({ ...form, paidBy: m._id })}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
                     form.paidBy === m._id
-                      ? 'border-[#52B788]/60 text-[#52B788]'
-                      : 'bg-[#1A1A2E] border-[#0F3460] text-[#A0AEC0] hover:border-[#52B788]/30'
+                      ? 'border-primary/60 text-primary'
+                      : 'bg-base border-subtle text-muted hover:border-primary/30'
                   }`}
                   style={form.paidBy === m._id ? { backgroundColor: m.color + '20' } : {}}
                 >
@@ -217,7 +217,7 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
 
           {/* Split type */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Split type</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Split type</label>
             <div className="flex gap-2">
               {(['equal', 'custom'] as const).map((t) => (
                 <button
@@ -226,8 +226,8 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
                   onClick={() => setForm({ ...form, splitType: t })}
                   className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all ${
                     form.splitType === t
-                      ? 'bg-[#52B788]/20 border-[#52B788]/60 text-[#52B788]'
-                      : 'bg-[#1A1A2E] border-[#0F3460] text-[#A0AEC0]'
+                      ? 'bg-primary/20 border-primary/60 text-primary'
+                      : 'bg-base border-subtle text-muted'
                   }`}
                 >
                   {t === 'equal' ? '⚖️ Equal' : '✏️ Custom'}
@@ -239,7 +239,7 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
           {/* Equal split — member selector */}
           {form.splitType === 'equal' && (
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">
+              <label className="block text-xs font-medium text-muted mb-1.5">
                 Split among ({splitAmong.length} people · {perPerson > 0 ? formatCurrency(perPerson) + '/each ~' : '—'})
               </label>
               <div className="flex gap-2 flex-wrap">
@@ -252,8 +252,8 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
                       onClick={() => toggleMember(m._id)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
                         selected
-                          ? 'border-[#52B788]/60 text-[#52B788]'
-                          : 'bg-[#1A1A2E] border-[#0F3460] text-[#A0AEC0] opacity-50'
+                          ? 'border-primary/60 text-primary'
+                          : 'bg-base border-subtle text-muted opacity-50'
                       }`}
                       style={selected ? { backgroundColor: m.color + '15' } : {}}
                     >
@@ -269,27 +269,27 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
           {/* Custom split — amounts per person */}
           {form.splitType === 'custom' && (
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">
+              <label className="block text-xs font-medium text-muted mb-1.5">
                 Custom amounts
-                <span className={`ml-2 ${Math.abs(customTotal - amount) > 1 ? 'text-[#E63946]' : 'text-[#52B788]'}`}>
+                <span className={`ml-2 ${Math.abs(customTotal - amount) > 1 ? 'text-danger' : 'text-primary'}`}>
                   (total: {formatCurrency(customTotal)} / {formatCurrency(amount)})
                 </span>
               </label>
               <div className="space-y-2">
                 {members.map((m) => (
                   <div key={m._id} className="flex items-center gap-3">
-                    <span className="text-sm w-28 flex items-center gap-1.5 text-[#E8F5E9]">
+                    <span className="text-sm w-28 flex items-center gap-1.5 text-foreground">
                       {m.emoji} {m.name}
                     </span>
                     <div className="relative flex-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#A0AEC0]">₹</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted">₹</span>
                       <input
                         type="number"
                         min="0"
                         value={customSplits[m._id] ?? ''}
                         onChange={(e) => setCustomSplits({ ...customSplits, [m._id]: e.target.value })}
                         placeholder="0"
-                        className="w-full pl-7 pr-3 py-2 bg-[#1A1A2E] border border-[#0F3460] rounded-lg text-[#E8F5E9] text-sm focus:outline-none focus:border-[#52B788]"
+                        className="w-full pl-7 pr-3 py-2 bg-base border border-subtle rounded-lg text-foreground text-sm focus:outline-none focus:border-primary"
                       />
                     </div>
                   </div>
@@ -300,12 +300,12 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
 
           {/* Note */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Note (optional)</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Note (optional)</label>
             <input
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
               placeholder="e.g. Including tip, Harshal will pay back later 😅"
-              className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] placeholder-[#A0AEC0]/40 focus:outline-none focus:border-[#52B788] text-sm"
+              className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground placeholder-muted/40 focus:outline-none focus:border-primary text-sm"
             />
           </div>
 
@@ -313,7 +313,7 @@ export default function AddExpenseModal({ members, editing, onClose, onSaved }: 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#52B788] hover:bg-[#2D6A4F] text-[#1A1A2E] font-heading font-bold rounded-xl transition-all disabled:opacity-60 text-sm"
+            className="w-full py-3 bg-primary hover:bg-primary-dark text-primary-fg font-heading font-bold rounded-xl transition-all disabled:opacity-60 text-sm"
           >
             {loading ? 'Saving...' : editing ? 'Update Expense ✅' : 'Add Expense 💸'}
           </button>

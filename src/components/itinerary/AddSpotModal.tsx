@@ -66,12 +66,12 @@ export default function AddSpotModal({ editing, onClose, onSaved }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full md:max-w-lg bg-[#16213E] border border-[#0F3460] rounded-t-2xl md:rounded-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-[#16213E] border-b border-[#0F3460] px-5 py-4 flex items-center justify-between">
-          <h2 className="font-heading font-bold text-lg text-[#E8F5E9]">
+      <div className="relative w-full md:max-w-lg bg-surface border border-subtle rounded-t-2xl md:rounded-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-surface border-b border-subtle px-5 py-4 flex items-center justify-between">
+          <h2 className="font-heading font-bold text-lg text-foreground">
             {editing ? '✏️ Edit Spot' : '📍 Add Spot'}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#0F3460] text-[#A0AEC0]">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-subtle text-muted">
             <X size={18} />
           </button>
         </div>
@@ -79,19 +79,19 @@ export default function AddSpotModal({ editing, onClose, onSaved }: Props) {
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Spot Name</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Spot Name</label>
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="e.g. Echo Point"
-              className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] placeholder-[#A0AEC0]/40 focus:outline-none focus:border-[#52B788] text-sm"
+              className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground placeholder-muted/40 focus:outline-none focus:border-primary text-sm"
             />
           </div>
 
           {/* Type + Day */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Type</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Type</label>
               <div className="flex gap-1.5 flex-wrap">
                 {SPOT_TYPES.map((t) => (
                   <button
@@ -100,8 +100,8 @@ export default function AddSpotModal({ editing, onClose, onSaved }: Props) {
                     onClick={() => setForm({ ...form, type: t.value })}
                     className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${
                       form.type === t.value
-                        ? 'bg-[#52B788]/20 border-[#52B788]/60 text-[#52B788]'
-                        : 'bg-[#1A1A2E] border-[#0F3460] text-[#A0AEC0]'
+                        ? 'bg-primary/20 border-primary/60 text-primary'
+                        : 'bg-base border-subtle text-muted'
                     }`}
                   >
                     {t.emoji} {t.label}
@@ -110,7 +110,7 @@ export default function AddSpotModal({ editing, onClose, onSaved }: Props) {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Day</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Day</label>
               <div className="flex gap-1.5 flex-wrap">
                 {DAYS.map((d) => (
                   <button
@@ -119,8 +119,8 @@ export default function AddSpotModal({ editing, onClose, onSaved }: Props) {
                     onClick={() => setForm({ ...form, day: d })}
                     className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${
                       form.day === d
-                        ? 'bg-[#2D9CDB]/20 border-[#2D9CDB]/60 text-[#2D9CDB]'
-                        : 'bg-[#1A1A2E] border-[#0F3460] text-[#A0AEC0]'
+                        ? 'bg-info/20 border-info/60 text-info'
+                        : 'bg-base border-subtle text-muted'
                     }`}
                   >
                     {d}
@@ -133,53 +133,53 @@ export default function AddSpotModal({ editing, onClose, onSaved }: Props) {
           {/* Time + Order */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Scheduled Time</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Scheduled Time</label>
               <input
                 value={form.scheduledTime}
                 onChange={(e) => setForm({ ...form, scheduledTime: e.target.value })}
                 placeholder="e.g. 5:30 AM"
-                className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] placeholder-[#A0AEC0]/40 focus:outline-none focus:border-[#52B788] text-sm"
+                className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground placeholder-muted/40 focus:outline-none focus:border-primary text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Order</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Order</label>
               <input
                 type="number"
                 value={form.order}
                 onChange={(e) => setForm({ ...form, order: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] focus:outline-none focus:border-[#52B788] text-sm"
+                className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground focus:outline-none focus:border-primary text-sm"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">Description</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Description</label>
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
               placeholder="Short description..."
-              className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] placeholder-[#A0AEC0]/40 focus:outline-none focus:border-[#52B788] text-sm resize-none"
+              className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground placeholder-muted/40 focus:outline-none focus:border-primary text-sm resize-none"
             />
           </div>
 
           {/* Fun fact */}
           <div>
-            <label className="block text-xs font-medium text-[#A0AEC0] mb-1.5">💡 Fun Fact (optional)</label>
+            <label className="block text-xs font-medium text-muted mb-1.5">💡 Fun Fact (optional)</label>
             <textarea
               value={form.funFact}
               onChange={(e) => setForm({ ...form, funFact: e.target.value })}
               rows={2}
               placeholder="Something funny or interesting about this spot..."
-              className="w-full px-4 py-2.5 bg-[#1A1A2E] border border-[#0F3460] rounded-xl text-[#E8F5E9] placeholder-[#A0AEC0]/40 focus:outline-none focus:border-[#52B788] text-sm resize-none"
+              className="w-full px-4 py-2.5 bg-base border border-subtle rounded-xl text-foreground placeholder-muted/40 focus:outline-none focus:border-primary text-sm resize-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#52B788] hover:bg-[#2D6A4F] text-[#1A1A2E] font-heading font-bold rounded-xl transition-all disabled:opacity-60 text-sm"
+            className="w-full py-3 bg-primary hover:bg-primary-dark text-primary-fg font-heading font-bold rounded-xl transition-all disabled:opacity-60 text-sm"
           >
             {loading ? 'Saving...' : editing ? 'Update Spot ✅' : 'Add Spot 📍'}
           </button>

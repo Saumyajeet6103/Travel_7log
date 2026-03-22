@@ -21,7 +21,7 @@ export default async function AdminPage() {
   const { members, users } = await getData()
 
   return (
-    <div className="min-h-screen bg-[#1A1A2E] pb-24 md:pb-8">
+    <div className="min-h-screen bg-base pb-24 md:pb-8">
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 pt-6">
         <AdminDashboard

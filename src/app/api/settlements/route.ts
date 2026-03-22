@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
-import { Settlement } from '@/lib/models'
+import { Settlement, Member } from '@/lib/models'
 import { getSession } from '@/lib/auth'
 import { publishEvent } from '@/lib/ably-server'
 
@@ -29,6 +29,25 @@ export async function POST(req: NextRequest) {
     }
 
     await connectDB()
+
+    // Only the receiver (to) can confirm a settlement
+    // Find the member linked to the current user
+    const callerMember = await Member.findOne({
+      $or: [
+        { name: { $regex: new RegExp(`^${session.name}$`, 'i') } },
+      ],
+    }).lean()
+
+    if (!callerMember || callerMember._id.toString() !== to) {
+      // Allow admin override
+      if (session.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Only the receiver can confirm settlement' },
+          { status: 403 }
+        )
+      }
+    }
+
     const settlement = await Settlement.create({
       from, to, amount,
       note:       note?.trim() ?? '',

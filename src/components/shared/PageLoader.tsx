@@ -20,11 +20,11 @@ export default function PageLoader() {
 
       {/* Spinner */}
       <div className="relative w-12 h-12">
-        <div className="w-12 h-12 border-4 border-[#0F3460] border-t-[#52B788] rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-subtle border-t-primary rounded-full animate-spin" />
       </div>
 
       {/* Rotating message */}
-      <p className="text-sm text-[#A0AEC0] text-center max-w-xs animate-fade-in" key={msgIdx}>
+      <p className="text-sm text-muted text-center max-w-xs animate-fade-in" key={msgIdx}>
         {FUNNY_LOADING_MESSAGES[msgIdx]}
       </p>
     </div>
