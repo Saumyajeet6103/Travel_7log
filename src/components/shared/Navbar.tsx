@@ -199,6 +199,18 @@ export default function Navbar() {
             <UserCircle size={16} /> My Profile
           </button>
           <button
+            onClick={() => { setMenuOpen(false); setShowInstall(true) }}
+            className="flex items-center gap-3 px-4 py-3 text-sm text-info w-full border-b border-subtle/50"
+          >
+            <Download size={16} /> Install App
+          </button>
+          <button
+            onClick={() => { setMenuOpen(false); setShowCalc(true) }}
+            className="flex items-center gap-3 px-4 py-3 text-sm text-muted w-full border-b border-subtle/50"
+          >
+            <CalcIcon size={16} /> Calculator
+          </button>
+          <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 text-sm text-danger w-full"
           >
