@@ -62,8 +62,5 @@ All work from this session is implemented but **not committed to GitHub**. On ne
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` — generated (see below)
 - `VAPID_PRIVATE_KEY` — generated (see below)
 
-### VAPID Keys (generated — add to .env and Vercel)
-```
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=BK-TPi7piXC_Ske7uQUMcte35ESaJLMZ_tgN9v1llPT9NpL6lVjpSvEaUFwX3VJUcHenYKj5sD2A5jHACArtXpo
-VAPID_PRIVATE_KEY=HXMtSCdkyX9sLpx5BmLBGxxRIDvxEkrUuv3o_xJnU2k
-```
+### VAPID Keys
+Keys stored in `.env.local` only (never commit). Regenerated 2026-03-24 after GitGuardian leak alert.

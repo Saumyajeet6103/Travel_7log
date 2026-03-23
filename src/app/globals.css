@@ -121,6 +121,7 @@
     --c-warning:      244 162 97;
     --c-info:         45 156 219;
     --c-purple:       155 93 229;
+    --c-subtitle:     180 195 210;
 
     /* shadcn compat */
     --background: #1A1A2E;
@@ -159,6 +160,7 @@
     --c-warning:      217 119 6;
     --c-info:         37 99 235;
     --c-purple:       124 58 237;
+    --c-subtitle:     90 100 116;
 
     /* shadcn compat */
     --background: #F5FAF7;

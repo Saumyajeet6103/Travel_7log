@@ -89,7 +89,7 @@ export default async function HomePage() {
             <p className="font-heading text-xl md:text-2xl text-warning font-semibold mb-2">
               MATHERAN 2026
             </p>
-            <p className="text-foreground/70 text-sm md:text-base max-w-md mx-auto mb-10 leading-relaxed">
+            <p className="text-sm md:text-base max-w-md mx-auto mb-10 leading-relaxed" style={{ color: 'rgb(var(--c-subtitle))' }}>
               7 dost, 1 hill station, infinite chaos.<br className="hidden sm:block" />
               Koi plan nahi, bas excitement hai.
             </p>
