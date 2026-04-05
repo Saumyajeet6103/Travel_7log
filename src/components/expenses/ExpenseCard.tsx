@@ -9,12 +9,13 @@ import { useAuth } from '@/lib/auth-context'
 interface Props {
   expense: PopulatedExpense
   currentMemberId?: string
-  onEdit:   (e: PopulatedExpense) => void
-  onDelete: (id: string) => void
-  onView?:  (e: PopulatedExpense) => void
+  onEdit:        (e: PopulatedExpense) => void
+  onDelete:      (id: string) => void
+  onView?:       (e: PopulatedExpense) => void
+  isHighlighted?: boolean
 }
 
-export default function ExpenseCard({ expense, currentMemberId, onEdit, onDelete, onView }: Props) {
+export default function ExpenseCard({ expense, currentMemberId, onEdit, onDelete, onView, isHighlighted }: Props) {
   const { isAdmin, user } = useAuth()
   const [showHistory, setShowHistory] = useState(false)
   const cat      = EXPENSE_CATEGORIES.find((c) => c.value === expense.category)
@@ -25,7 +26,12 @@ export default function ExpenseCard({ expense, currentMemberId, onEdit, onDelete
   const hasEdits = expense.editHistory?.length > 0
 
   return (
-    <div className="group bg-surface border border-subtle rounded-xl p-4 hover:border-primary/40 transition-all card-hover">
+    <div
+      id={`expense-${expense._id}`}
+      className={`group bg-surface border rounded-xl p-4 hover:border-primary/40 transition-all card-hover ${
+        isHighlighted ? 'border-primary ring-2 ring-primary/30' : 'border-subtle'
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         {/* Left: category icon + info */}
         <div className="flex items-start gap-3 flex-1 min-w-0">

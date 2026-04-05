@@ -1,27 +1,103 @@
 'use client'
 
-import { MemberBalance, SettlementTransaction } from '@/types/expense'
-import { formatCurrency } from '@/lib/utils'
-import { TrendingUp, TrendingDown, ArrowRight, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { useState } from 'react'
+import { MemberBalance, SettlementTransaction, PopulatedExpense } from '@/types/expense'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import { TrendingUp, TrendingDown, ArrowRight, ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, Receipt, ExternalLink } from 'lucide-react'
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  food: '🍔', travel: '🚗', stay: '🏨', fun: '🎉', misc: '📦',
+}
 
 interface Props {
   memberBalances:  MemberBalance[]
   transactions:    SettlementTransaction[]
   currentMemberId: string
   onSettleUp:      (t: SettlementTransaction) => void
+  expenses:        PopulatedExpense[]
+  onNavigate:      (expenseId: string) => void
+}
+
+function ExpenseBreakdownList({
+  expenses,
+  onNavigate,
+}: {
+  expenses: { id: string; title: string; amount: number; category: string; date: string; share?: number }[]
+  onNavigate: (id: string) => void
+}) {
+  if (expenses.length === 0) {
+    return <p className="text-xs text-muted text-center py-3">No expenses found</p>
+  }
+  return (
+    <div className="mt-2 space-y-1.5">
+      {expenses.map((e) => (
+        <button
+          key={e.id}
+          onClick={() => onNavigate(e.id)}
+          className="w-full flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg bg-background/60 hover:bg-primary/10 hover:border-primary/20 border border-transparent transition-all text-left group"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm">{CATEGORY_EMOJI[e.category] ?? '📦'}</span>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground truncate">{e.title}</p>
+              <p className="text-[10px] text-muted">{formatDate(e.date)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="text-right">
+              {e.share !== undefined && e.share !== e.amount ? (
+                <>
+                  <p className="text-xs font-bold text-foreground">{formatCurrency(e.share)}</p>
+                  <p className="text-[10px] text-muted">of {formatCurrency(e.amount)}</p>
+                </>
+              ) : (
+                <p className="text-xs font-bold text-foreground">{formatCurrency(e.amount)}</p>
+              )}
+            </div>
+            <ExternalLink size={10} className="text-muted group-hover:text-primary transition-colors flex-shrink-0" />
+          </div>
+        </button>
+      ))}
+    </div>
+  )
 }
 
 export default function MyBalanceView({
-  memberBalances, transactions, currentMemberId, onSettleUp,
+  memberBalances, transactions, currentMemberId, onSettleUp, expenses, onNavigate,
 }: Props) {
   const myBalance = memberBalances.find((m) => m._id === currentMemberId)
   const iOwe      = myBalance && myBalance.netBalance < 0 ? Math.abs(myBalance.netBalance) : 0
   const iGetBack  = myBalance && myBalance.netBalance > 0 ? myBalance.netBalance : 0
 
+  const [showOweBreakdown,   setShowOweBreakdown]   = useState(false)
+  const [showPaidBreakdown,  setShowPaidBreakdown]  = useState(false)
+  const [showOwedBreakdown,  setShowOwedBreakdown]  = useState(false)
+
   // Transactions where I need to pay someone
   const myDebts   = transactions.filter((t) => t.from === currentMemberId)
   // Transactions where someone pays me
   const myCredits = transactions.filter((t) => t.to === currentMemberId)
+
+  // Expenses where I paid
+  const paidExpenses = expenses
+    .filter((e) => e.paidBy._id === currentMemberId)
+    .map((e) => ({ id: e._id, title: e.title, amount: e.amount, category: e.category, date: e.date }))
+
+  // Expenses where I have a split (totalOwed sources)
+  const owedExpenses = expenses
+    .filter((e) => e.splits.some((s) => s.member._id === currentMemberId))
+    .map((e) => {
+      const mySplit = e.splits.find((s) => s.member._id === currentMemberId)
+      return { id: e._id, title: e.title, amount: e.amount, category: e.category, date: e.date, share: mySplit?.amount ?? 0 }
+    })
+
+  // Expenses contributing to OWE = expenses where I have a split but did NOT pay
+  const oweSourceExpenses = expenses
+    .filter((e) => e.splits.some((s) => s.member._id === currentMemberId) && e.paidBy._id !== currentMemberId)
+    .map((e) => {
+      const mySplit = e.splits.find((s) => s.member._id === currentMemberId)
+      return { id: e._id, title: e.title, amount: e.amount, category: e.category, date: e.date, share: mySplit?.amount ?? 0 }
+    })
 
   return (
     <div className="space-y-6">
@@ -58,15 +134,72 @@ export default function MyBalanceView({
               ? 'Mare levanu chhe — paisa levi le! 🤑'
               : 'Badhu clear chhe! 🎉'}
         </p>
+
         {myBalance && (
-          <div className="flex gap-4 mt-3 pt-3 border-t border-subtle/50">
+          <div className="mt-3 pt-3 border-t border-subtle/50 space-y-2">
+            {/* You Owe breakdown */}
+            {iOwe > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowOweBreakdown((v) => !v)}
+                  className="w-full flex items-center justify-between py-1 group"
+                >
+                  <div className="text-left">
+                    <p className="text-[10px] text-muted">You Owe</p>
+                    <p className="font-heading font-bold text-sm text-danger">{formatCurrency(iOwe)}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-muted group-hover:text-danger transition-colors">
+                    <Receipt size={11} />
+                    {showOweBreakdown ? 'Hide' : 'See how'}
+                    {showOweBreakdown ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                  </div>
+                </button>
+                {showOweBreakdown && (
+                  <ExpenseBreakdownList expenses={oweSourceExpenses} onNavigate={onNavigate} />
+                )}
+              </div>
+            )}
+
+            {/* Total Paid breakdown */}
             <div>
-              <p className="text-[10px] text-muted">Total Paid</p>
-              <p className="font-heading font-bold text-sm text-foreground">{formatCurrency(myBalance.totalPaid)}</p>
+              <button
+                onClick={() => setShowPaidBreakdown((v) => !v)}
+                className="w-full flex items-center justify-between py-1 group"
+              >
+                <div className="text-left">
+                  <p className="text-[10px] text-muted">Total Paid</p>
+                  <p className="font-heading font-bold text-sm text-foreground">{formatCurrency(myBalance.totalPaid)}</p>
+                </div>
+                <div className="flex items-center gap-1 text-[10px] text-muted group-hover:text-foreground transition-colors">
+                  <Receipt size={11} />
+                  {showPaidBreakdown ? 'Hide' : 'View all'}
+                  {showPaidBreakdown ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                </div>
+              </button>
+              {showPaidBreakdown && (
+                <ExpenseBreakdownList expenses={paidExpenses} onNavigate={onNavigate} />
+              )}
             </div>
+
+            {/* Total Owed breakdown */}
             <div>
-              <p className="text-[10px] text-muted">Total Owed</p>
-              <p className="font-heading font-bold text-sm text-foreground">{formatCurrency(myBalance.totalOwed)}</p>
+              <button
+                onClick={() => setShowOwedBreakdown((v) => !v)}
+                className="w-full flex items-center justify-between py-1 group"
+              >
+                <div className="text-left">
+                  <p className="text-[10px] text-muted">Total Owed</p>
+                  <p className="font-heading font-bold text-sm text-foreground">{formatCurrency(myBalance.totalOwed)}</p>
+                </div>
+                <div className="flex items-center gap-1 text-[10px] text-muted group-hover:text-foreground transition-colors">
+                  <Receipt size={11} />
+                  {showOwedBreakdown ? 'Hide' : 'View all'}
+                  {showOwedBreakdown ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                </div>
+              </button>
+              {showOwedBreakdown && (
+                <ExpenseBreakdownList expenses={owedExpenses} onNavigate={onNavigate} />
+              )}
             </div>
           </div>
         )}

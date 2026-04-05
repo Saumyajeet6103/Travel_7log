@@ -13,7 +13,7 @@ import SettleModal      from './SettleModal'
 import PersonalExpenses from './PersonalExpenses'
 import MyBalanceView    from './MyBalanceView'
 import ViewExpenseModal from './ViewExpenseModal'
-import { Plus, TrendingUp, TrendingDown, Wallet, History, RefreshCw, User, UserCheck, Trash2, Eye } from 'lucide-react'
+import { Plus, TrendingUp, TrendingDown, Wallet, History, RefreshCw, User, UserCheck, Trash2, Eye, ArrowUpDown, ArrowUp, ArrowDown, X, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface DeleteLogSplit {
@@ -89,8 +89,14 @@ export default function ExpenseDashboard({
   const [editing,     setEditing]     = useState<PopulatedExpense | null>(null)
   const [settleTarget, setSettleTarget] = useState<SettlementTransaction | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [deleteLogs, setDeleteLogs] = useState<DeleteLogEntry[]>([])
-  const [viewData, setViewData]     = useState<ViewData | null>(null)
+  const [deleteLogs,   setDeleteLogs]   = useState<DeleteLogEntry[]>([])
+  const [viewData,     setViewData]     = useState<ViewData | null>(null)
+  const [highlightId,  setHighlightId]  = useState<string | null>(null)
+
+  // Group expenses date filter state
+  const [sortOrder,  setSortOrder]  = useState<'desc' | 'asc'>('desc')
+  const [filterFrom, setFilterFrom] = useState('')
+  const [filterTo,   setFilterTo]   = useState('')
 
   // Find current member ID from members list
   const currentMember = initialMembers.find(
@@ -120,6 +126,17 @@ export default function ExpenseDashboard({
       .then((d) => setDeleteLogs(d.logs ?? []))
       .catch(() => {})
   }, [])
+
+  const navigateToExpense = (id: string) => {
+    setActiveTab('expenses')
+    setFilterFrom('')
+    setFilterTo('')
+    setHighlightId(id)
+    setTimeout(() => {
+      document.getElementById(`expense-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setTimeout(() => setHighlightId(null), 2000)
+    }, 100)
+  }
 
   const handleManualRefresh = async () => {
     setRefreshing(true)
@@ -190,6 +207,24 @@ export default function ExpenseDashboard({
       toast.error(d.error ?? 'Delete failed')
     }
   }
+
+  // Filtered + sorted group expenses
+  const filteredExpenses = expenses
+    .filter((e) => {
+      const d = e.date.slice(0, 10)
+      if (filterFrom && d < filterFrom) return false
+      if (filterTo   && d > filterTo)   return false
+      return true
+    })
+    .sort((a, b) => {
+      const diff = new Date(a.date).getTime() - new Date(b.date).getTime()
+      return sortOrder === 'asc' ? diff : -diff
+    })
+
+  const hasDateFilter = filterFrom !== '' || filterTo !== ''
+
+  // Unique sorted dates for quick-select chips
+  const uniqueDates = Array.from(new Set(expenses.map((e) => e.date.slice(0, 10)))).sort()
 
   // Computed stats
   const totalSpent  = expenses.reduce((s, e) => s + e.amount, 0)
@@ -272,22 +307,109 @@ export default function ExpenseDashboard({
       {/* Expenses */}
       {activeTab === 'expenses' && (
         <div className="space-y-3 animate-fade-in">
-          {expenses.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-4xl mb-2">🫙</p>
-              <p className="font-heading font-bold text-primary">Abhi tak kuch nahi!</p>
-              <p className="text-xs text-muted mt-1">
-                No expenses yet. Bhai trip pe gaye ho ya ghar pe baithe ho? 😂
-              </p>
-              <button
-                onClick={() => setShowAdd(true)}
-                className="mt-4 px-4 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-sm font-medium"
-              >
-                Add first expense +
-              </button>
+          {/* Date filter bar */}
+          {expenses.length > 0 && (
+            <div className="bg-surface border border-subtle rounded-xl p-3 space-y-2.5">
+              {/* Sort + date range row */}
+              <div className="flex items-center gap-2">
+                <CalendarDays size={13} className="text-muted flex-shrink-0" />
+                <button
+                  onClick={() => setSortOrder((o) => o === 'desc' ? 'asc' : 'desc')}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-subtle text-xs font-medium text-muted hover:text-primary hover:border-primary/40 transition-all flex-shrink-0"
+                >
+                  {sortOrder === 'desc' ? <ArrowDown size={11} /> : <ArrowUp size={11} />}
+                  {sortOrder === 'desc' ? 'Newest first' : 'Oldest first'}
+                </button>
+                <div className="flex items-center gap-1 flex-1 min-w-0">
+                  <input
+                    type="date"
+                    value={filterFrom}
+                    onChange={(e) => setFilterFrom(e.target.value)}
+                    className="flex-1 min-w-0 text-[11px] bg-background border border-subtle rounded-lg px-2 py-1.5 text-foreground focus:outline-none focus:border-primary/50"
+                    placeholder="From"
+                  />
+                  <span className="text-muted text-xs flex-shrink-0">–</span>
+                  <input
+                    type="date"
+                    value={filterTo}
+                    onChange={(e) => setFilterTo(e.target.value)}
+                    className="flex-1 min-w-0 text-[11px] bg-background border border-subtle rounded-lg px-2 py-1.5 text-foreground focus:outline-none focus:border-primary/50"
+                    placeholder="To"
+                  />
+                  {hasDateFilter && (
+                    <button
+                      onClick={() => { setFilterFrom(''); setFilterTo('') }}
+                      className="flex-shrink-0 p-1.5 rounded-lg bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
+                      title="Clear filter"
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {/* Quick date chips */}
+              {uniqueDates.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {uniqueDates.map((d) => {
+                    const isActive = filterFrom === d && filterTo === d
+                    return (
+                      <button
+                        key={d}
+                        onClick={() => {
+                          if (isActive) { setFilterFrom(''); setFilterTo('') }
+                          else { setFilterFrom(d); setFilterTo(d) }
+                        }}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all ${
+                          isActive
+                            ? 'bg-primary text-primary-fg border-primary'
+                            : 'bg-background text-muted border-subtle hover:border-primary/40 hover:text-primary'
+                        }`}
+                      >
+                        {new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              {/* Result count */}
+              {hasDateFilter && (
+                <p className="text-[10px] text-muted">
+                  Showing {filteredExpenses.length} of {expenses.length} expenses
+                </p>
+              )}
             </div>
+          )}
+
+          {filteredExpenses.length === 0 ? (
+            expenses.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-4xl mb-2">🫙</p>
+                <p className="font-heading font-bold text-primary">Abhi tak kuch nahi!</p>
+                <p className="text-xs text-muted mt-1">
+                  No expenses yet. Bhai trip pe gaye ho ya ghar pe baithe ho? 😂
+                </p>
+                <button
+                  onClick={() => setShowAdd(true)}
+                  className="mt-4 px-4 py-2 bg-primary/20 text-primary border border-primary/30 rounded-xl text-sm font-medium"
+                >
+                  Add first expense +
+                </button>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-3xl mb-2">📅</p>
+                <p className="font-heading font-bold text-foreground">No expenses in this range</p>
+                <p className="text-xs text-muted mt-1">Try adjusting the date filter</p>
+                <button
+                  onClick={() => { setFilterFrom(''); setFilterTo('') }}
+                  className="mt-3 px-3 py-1.5 bg-primary/20 text-primary border border-primary/30 rounded-xl text-xs font-medium"
+                >
+                  Clear filter
+                </button>
+              </div>
+            )
           ) : (
-            expenses.map((expense) => (
+            filteredExpenses.map((expense) => (
               <ExpenseCard
                 key={expense._id}
                 expense={expense}
@@ -295,6 +417,7 @@ export default function ExpenseDashboard({
                 onEdit={(e) => { setEditing(e); setShowAdd(true) }}
                 onDelete={handleDelete}
                 onView={handleViewExpense}
+                isHighlighted={highlightId === expense._id}
               />
             ))
           )}
@@ -309,6 +432,8 @@ export default function ExpenseDashboard({
             transactions={balances.transactions}
             currentMemberId={currentMemberId}
             onSettleUp={(t) => setSettleTarget(t)}
+            expenses={expenses}
+            onNavigate={navigateToExpense}
           />
         </div>
       )}
