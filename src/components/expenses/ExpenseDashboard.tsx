@@ -13,7 +13,7 @@ import SettleModal      from './SettleModal'
 import PersonalExpenses from './PersonalExpenses'
 import MyBalanceView    from './MyBalanceView'
 import ViewExpenseModal from './ViewExpenseModal'
-import { Plus, TrendingUp, TrendingDown, Wallet, History, RefreshCw, User, UserCheck, Trash2, Eye, ArrowUpDown, ArrowUp, ArrowDown, X, CalendarDays } from 'lucide-react'
+import { Plus, TrendingUp, TrendingDown, Wallet, History, RefreshCw, User, UserCheck, Trash2, Eye, ArrowUp, ArrowDown, X, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface DeleteLogSplit {
